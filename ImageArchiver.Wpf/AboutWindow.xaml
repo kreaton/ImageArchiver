@@ -19,7 +19,10 @@
         <TextBlock Margin="0,18,0,0" TextWrapping="Wrap" MaxWidth="400" HorizontalAlignment="Left"
                    Text="Copies JPEG and HEIC photos from a messy folder tree into a tidy archive of year and month folders, and records every file in a catalog." />
 
-        <TextBlock Margin="0,14,0,0" FontWeight="SemiBold" Text="© 2026 Per Hejndorf" />
+        <TextBlock Margin="0,14,0,0" FontWeight="SemiBold">
+            <Run Text="© 2026 Per Hejndorf ·" />
+            <Hyperlink NavigateUri="https://github.com/kreaton/ImageArchiver/blob/main/LICENSE" RequestNavigate="OnRepoLink">MIT License</Hyperlink>
+        </TextBlock>
         <TextBlock Margin="0,2,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
                    Text="Built with MetadataExtractor, Microsoft.Data.Sqlite and Velopack." />
         <TextBlock Margin="0,2,0,0">
