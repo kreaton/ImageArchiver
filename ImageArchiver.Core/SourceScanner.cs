@@ -1,6 +1,6 @@
 namespace ImageArchiver.Core;
 
-/// <summary>Finds the JPEG files under a source directory, in a stable order.</summary>
+/// <summary>Finds the photos under a source directory, in a stable order.</summary>
 internal static class SourceScanner
 {
     public static (List<string> Files, List<(string Path, string Reason)> Failures) Scan(
@@ -41,7 +41,7 @@ internal static class SourceScanner
                     && !IsProtected(subdirectory))
                     pending.Push(subdirectory);
             }
-            files.AddRange(entries.Where(e => e is FileInfo && e.LinkTarget is null && Archiver.IsJpeg(e.Name)).Select(e => e.FullName));
+            files.AddRange(entries.Where(e => e is FileInfo && e.LinkTarget is null && Archiver.IsPhoto(e.Name)).Select(e => e.FullName));
         }
         return (files, failures);
     }

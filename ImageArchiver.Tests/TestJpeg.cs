@@ -40,18 +40,17 @@ public sealed record TestJpeg
         var exif = BuildExif();
         if (exif.Length > 0)
             WriteSegment(jpeg, [.. "Exif\0\0"u8, .. exif]);
-        if (XmpDateCreated is not null || RawXmp is not null)
-        {
-            var packet = RawXmp ?? $"""
-                <x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
-                <rdf:Description rdf:about="" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" photoshop:DateCreated="{XmpDateCreated}"/>
-                </rdf:RDF></x:xmpmeta>
-                """;
+        if (XmpPacket() is { } packet)
             WriteSegment(jpeg, [.. "http://ns.adobe.com/xap/1.0/\0"u8, .. XmpPrefix, .. Encoding.UTF8.GetBytes(packet)]);
-        }
         jpeg.Write([0xFF, 0xDA, 0x00, 0x02, Content, 0x34, 0xFF, 0xD9]);
         return jpeg.ToArray();
     }
+
+    internal string? XmpPacket() => XmpDateCreated is null && RawXmp is null ? null : RawXmp ?? $"""
+        <x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+        <rdf:Description rdf:about="" xmlns:photoshop="http://ns.adobe.com/photoshop/1.0/" photoshop:DateCreated="{XmpDateCreated}"/>
+        </rdf:RDF></x:xmpmeta>
+        """;
 
     private static void WriteSegment(Stream jpeg, byte[] payload)
     {
@@ -60,7 +59,7 @@ public sealed record TestJpeg
         jpeg.Write(payload);
     }
 
-    private byte[] BuildExif()
+    internal byte[] BuildExif()
     {
         var sub = new List<Entry>();
         AddText(sub, 0x9003, DateTimeOriginal);

@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 namespace ImageArchiver.Core;
 
 /// <summary>
-/// Copies .jpg and .jpeg files from a directory tree into target\yyyy-MM folders, by the smallest
+/// Copies JPEG and HEIC files from a directory tree into target\yyyy-MM folders, by the smallest
 /// date detected for each photo, and records every file in a catalog in the target root. The
 /// copies get that date as their created and modified dates; their content is left identical.
 /// Source files are never changed and nothing in the archive is overwritten.
@@ -247,7 +247,7 @@ public sealed class Archiver
         foreach (var path in Directory.EnumerateFiles(folder))
         {
             var relative = Path.GetRelativePath(_target, path);
-            if (!IsJpeg(path) || _index.Contains(relative))
+            if (!IsPhoto(path) || _index.Contains(relative))
                 continue;
             try
             {
@@ -282,10 +282,12 @@ public sealed class Archiver
 
     private static string? NoteText(List<string> notes) => notes.Count == 0 ? null : string.Join("; ", notes);
 
-    public static bool IsJpeg(string path)
+    public static bool IsPhoto(string path)
     {
         var extension = Path.GetExtension(path);
         return extension.Equals(".jpg", StringComparison.OrdinalIgnoreCase)
-            || extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase);
+            || extension.Equals(".jpeg", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".heic", StringComparison.OrdinalIgnoreCase)
+            || extension.Equals(".heif", StringComparison.OrdinalIgnoreCase);
     }
 }

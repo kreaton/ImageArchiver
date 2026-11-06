@@ -5,7 +5,7 @@ using ImageArchiver.Core;
 
 const int ExitOk = 0, ExitFailed = 1, ExitInvalidArguments = 2, ExitCancelled = 130;
 
-var source = new Argument<string>("source") { Description = "Directory to scan recursively for .jpg and .jpeg files" };
+var source = new Argument<string>("source") { Description = "Directory to scan recursively for .jpg, .jpeg, .heic and .heif files" };
 var target = new Argument<string?>("target")
 {
     Description = "Root directory of the archive, created if it doesn't exist. Not used with --dry-run or --update-source-dates",
@@ -30,7 +30,7 @@ var updateDates = new Option<bool>("--update-source-dates")
 };
 var verbose = new Option<bool>("--verbose", "-v") { Description = "Print a line for every file" };
 
-var root = new RootCommand("Archive JPEG photos into yyyy-MM folders by the smallest date detected for each photo.")
+var root = new RootCommand("Archive JPEG and HEIC photos into yyyy-MM folders by the smallest date detected for each photo.")
 {
     source, target, catalog, keep, dryRun, updateDates, verbose,
 };

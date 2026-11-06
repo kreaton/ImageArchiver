@@ -1,6 +1,7 @@
 using System.Globalization;
 using MetadataExtractor;
 using MetadataExtractor.Formats.Exif;
+using MetadataExtractor.Formats.Heif;
 using MetadataExtractor.Formats.Iptc;
 using MetadataExtractor.Formats.Jpeg;
 using MetadataExtractor.Formats.Xmp;
@@ -9,7 +10,7 @@ using MxDirectory = MetadataExtractor.Directory;
 
 namespace ImageArchiver.Core;
 
-/// <summary>The metadata read from a JPEG: catalog column values and the candidate dates.</summary>
+/// <summary>The metadata read from a JPEG or HEIF file: catalog column values and the candidate dates.</summary>
 public sealed class ImageMetadata
 {
     /// <summary>XMP properties holding dates, with their catalog columns.</summary>
@@ -61,13 +62,23 @@ public sealed class ImageMetadata
         CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
         try
         {
-            ICollection<JpegSegment> segments;
+            ICollection<JpegSegment> segments = [];
+            IReadOnlyList<MxDirectory> directories;
+            var problems = new List<string>();
             try
             {
                 using var stream = new MemoryStream(data, writable: false);
-                segments = JpegSegmentReader.ReadSegments(
-                    new SequentialStreamReader(stream),
-                    JpegMetadataReader.AllReaders.SelectMany(r => r.SegmentTypes).ToHashSet()).ToList();
+                if (IsHeif(data))
+                {
+                    directories = ReadHeifDirectories(stream, data, problems);
+                }
+                else
+                {
+                    segments = JpegSegmentReader.ReadSegments(
+                        new SequentialStreamReader(stream),
+                        JpegMetadataReader.AllReaders.SelectMany(r => r.SegmentTypes).ToHashSet()).ToList();
+                    directories = ReadDirectories(segments, problems);
+                }
             }
             catch (Exception ex)
             {
@@ -76,8 +87,6 @@ public sealed class ImageMetadata
                 return new ImageMetadata { ReadError = ex.Message };
             }
 
-            var problems = new List<string>();
-            var directories = ReadDirectories(segments, problems);
             var metadata = new ImageMetadata { ReadError = problems.Count > 0 ? string.Join("; ", problems) : null };
             metadata.ReadExif(directories);
             metadata.ReadIptc(directories.OfType<IptcDirectory>());
@@ -92,6 +101,9 @@ public sealed class ImageMetadata
             CultureInfo.CurrentCulture = culture;
         }
     }
+
+    /// <summary>By the content, as a photo's extension can be wrong: HEIF files start with an ftyp box.</summary>
+    private static bool IsHeif(byte[] data) => data.Length >= 8 && data.AsSpan(4, 4).SequenceEqual("ftyp"u8);
 
     /// <summary>
     /// Runs each reader on its own, because the library lets one reader's exception discard
@@ -138,24 +150,44 @@ public sealed class ImageMetadata
     {
         var directories = new List<MxDirectory>();
         foreach (var segment in segments.Where(s => s.Type == JpegSegmentType.App1 && s.Bytes.AsSpan().StartsWith(XmpSignature)))
+            if (ExtractXmpPacket(segment.Bytes) is { } directory)
+                directories.Add(directory);
+        return directories;
+    }
+
+    /// <summary>The same recovery for HEIF, where the reader gives a directory with nothing parsed.</summary>
+    private static List<MxDirectory> ReadHeifDirectories(Stream stream, byte[] data, List<string> problems)
+    {
+        var directories = HeifMetadataReader.ReadMetadata(stream).ToList();
+        if (directories.RemoveAll(d => d is XmpDirectory { XmpMeta: null }) > 0)
         {
-            var bytes = segment.Bytes;
-            var start = bytes.AsSpan().IndexOf("<?xpacket"u8);
-            if (start < 0)
-                start = bytes.AsSpan().IndexOf("<x:xmpmeta"u8);
-            if (start < 0)
-                continue;
-            try
-            {
-                if (new XmpReader().Extract(bytes, start, bytes.Length - start) is { XmpMeta: not null } directory)
-                    directories.Add(directory);
-            }
-            catch (Exception)
-            {
-                // Really unreadable, which the caller reports.
-            }
+            if (ExtractXmpPacket(data) is { } recovered)
+                directories.Add(recovered);
+            else
+                problems.Add("XmpReader: the XMP packet cannot be parsed");
         }
         return directories;
+    }
+
+    /// <summary>Finds the XMP packet in the bytes, which can hold other data after it. Null if there is none that parses.</summary>
+    private static XmpDirectory? ExtractXmpPacket(byte[] bytes)
+    {
+        var start = bytes.AsSpan().IndexOf("<?xpacket"u8);
+        if (start < 0)
+            start = bytes.AsSpan().IndexOf("<x:xmpmeta"u8);
+        if (start < 0)
+            return null;
+
+        var close = bytes.AsSpan(start).IndexOf("</x:xmpmeta>"u8);
+        var length = close < 0 ? bytes.Length - start : close + "</x:xmpmeta>"u8.Length;
+        try
+        {
+            return new XmpReader().Extract(bytes, start, length) is { XmpMeta: not null } directory ? directory : null;
+        }
+        catch (Exception)
+        {
+            return null; // Really unreadable, which the caller reports.
+        }
     }
 
     private void ReadExif(IReadOnlyList<MxDirectory> directories)
@@ -190,8 +222,12 @@ public sealed class ImageMetadata
 
         // The frame header holds the real pixel size; EXIF may describe an earlier version.
         var frame = directories.OfType<JpegDirectory>().FirstOrDefault();
-        Set("width", frame?.GetString(JpegDirectory.TagImageWidth) ?? Raw(ExifDirectoryBase.TagExifImageWidth));
-        Set("height", frame?.GetString(JpegDirectory.TagImageHeight) ?? Raw(ExifDirectoryBase.TagExifImageHeight));
+        // A HEIF file also lists its thumbnail, so the photo is the largest image in it.
+        var heif = directories.OfType<HeicImagePropertiesDirectory>()
+            .Where(d => d.ContainsTag(HeicImagePropertiesDirectory.TagImageWidth))
+            .MaxBy(d => d.TryGetInt32(HeicImagePropertiesDirectory.TagImageWidth, out var width) ? width : 0);
+        Set("width", frame?.GetString(JpegDirectory.TagImageWidth) ?? heif?.GetString(HeicImagePropertiesDirectory.TagImageWidth) ?? Raw(ExifDirectoryBase.TagExifImageWidth));
+        Set("height", frame?.GetString(JpegDirectory.TagImageHeight) ?? heif?.GetString(HeicImagePropertiesDirectory.TagImageHeight) ?? Raw(ExifDirectoryBase.TagExifImageHeight));
     }
 
     private void ReadIptc(IEnumerable<IptcDirectory> directories)
