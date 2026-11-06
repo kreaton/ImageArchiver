@@ -8,12 +8,27 @@
     <UseWPF>true</UseWPF>
     <AssemblyName>ImageArchiverWpf</AssemblyName>
     <RootNamespace>ImageArchiver.Wpf</RootNamespace>
+    <ApplicationIcon>app.ico</ApplicationIcon>
+    <Version>1.0.0</Version>
+    <Product>ImageArchiver</Product>
+    <Authors>Per Hejndorf</Authors>
+    <Copyright>Copyright © 2026 Per Hejndorf</Copyright>
+    <!-- Velopack's Program.Main replaces the generated WPF entry point -->
+    <StartupObject>ImageArchiver.Wpf.Program</StartupObject>
     <!-- WPF's built-in Fluent theme (ThemeMode) is still flagged experimental in .NET 10. -->
     <NoWarn>$(NoWarn);WPF0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\ImageArchiver.Core\ImageArchiver.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="app.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Velopack" Version="1.2.161" />
   </ItemGroup>
 
 </Project>

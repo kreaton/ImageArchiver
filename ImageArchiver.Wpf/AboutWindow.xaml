@@ -1,0 +1,36 @@
+<Window x:Class="ImageArchiver.Wpf.AboutWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="About ImageArchiver"
+        Icon="app.ico"
+        SizeToContent="WidthAndHeight" ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner" ShowInTaskbar="False">
+    <StackPanel Margin="28,24,28,20" MinWidth="320">
+        <StackPanel Orientation="Horizontal">
+            <Image x:Name="AppIcon" Width="64" Height="64" VerticalAlignment="Top"
+                   RenderOptions.BitmapScalingMode="HighQuality" />
+            <StackPanel Margin="18,2,0,0" VerticalAlignment="Center">
+                <TextBlock Text="ImageArchiver" FontSize="22" FontWeight="SemiBold" />
+                <TextBlock x:Name="VersionText" Margin="0,2,0,0"
+                           Foreground="{DynamicResource TextFillColorSecondaryBrush}" />
+            </StackPanel>
+        </StackPanel>
+
+        <TextBlock Margin="0,18,0,0" TextWrapping="Wrap" MaxWidth="400" HorizontalAlignment="Left"
+                   Text="Copies JPEG and HEIC photos from a messy folder tree into a tidy archive of year and month folders, and records every file in a catalog." />
+
+        <TextBlock Margin="0,14,0,0" FontWeight="SemiBold" Text="© 2026 Per Hejndorf" />
+        <TextBlock Margin="0,2,0,0" Foreground="{DynamicResource TextFillColorSecondaryBrush}"
+                   Text="Built with MetadataExtractor, Microsoft.Data.Sqlite and Velopack." />
+        <TextBlock Margin="0,2,0,0">
+            <Hyperlink x:Name="RepoLink" RequestNavigate="OnRepoLink">
+                <Run x:Name="RepoLinkText" />
+            </Hyperlink>
+        </TextBlock>
+
+        <StackPanel Orientation="Horizontal" Margin="0,20,0,0" HorizontalAlignment="Right">
+            <Button x:Name="UpdateButton" Content="Check for updates" Margin="0,0,8,0" Click="OnCheckForUpdates" />
+            <Button Content="OK" IsDefault="True" IsCancel="True" MinWidth="96" Style="{DynamicResource AccentButtonStyle}" />
+        </StackPanel>
+    </StackPanel>
+</Window>

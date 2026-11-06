@@ -50,6 +50,8 @@ public partial class MainWindow : Window
 
     private void OnPathChanged(object sender, RoutedEventArgs e) => UpdateButtons();
 
+    private void OnAbout(object sender, RoutedEventArgs e) => new AboutWindow { Owner = this }.ShowDialog();
+
     private void UpdateButtons()
     {
         var idle = _cancellation is null;
@@ -57,6 +59,8 @@ public partial class MainWindow : Window
         StartButton.IsEnabled = idle && hasSource && !string.IsNullOrWhiteSpace(TargetBox.Text);
         DuplicatesButton.IsEnabled = DatesButton.IsEnabled = idle && hasSource;
         CancelButton.IsEnabled = !idle;
+        // Installing an update restarts the app, so it must not be reachable during a run.
+        AboutButton.IsEnabled = idle;
         SourceBox.IsEnabled = TargetBox.IsEnabled = CatalogBox.IsEnabled = SuppressBox.IsEnabled = idle;
     }
 
@@ -98,7 +102,7 @@ public partial class MainWindow : Window
         var source = SourceBox.Text.Trim();
         var answer = MessageBox.Show(
             this,
-            $"This sets the created and modified dates of every JPEG in\n\n{source}\n\nto its smallest detected date. The file contents aren't touched, but the previous dates are not kept.\n\nUpdate the source files?",
+            $"This sets the created and modified dates of every JPEG and HEIC photo in\n\n{source}\n\nto its smallest detected date. The file contents aren't touched, but the previous dates are not kept.\n\nUpdate the source files?",
             "Update source dates",
             MessageBoxButton.YesNo,
             MessageBoxImage.Warning,
