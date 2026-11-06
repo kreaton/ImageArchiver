@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="ImageArchiver.Cli/ImageArchiver.Cli.csproj" />
+  <Project Path="ImageArchiver.Core/ImageArchiver.Core.csproj" />
+  <Project Path="ImageArchiver.Tests/ImageArchiver.Tests.csproj" />
+  <Project Path="ImageArchiver.Wpf/ImageArchiver.Wpf.csproj" />
+</Solution>

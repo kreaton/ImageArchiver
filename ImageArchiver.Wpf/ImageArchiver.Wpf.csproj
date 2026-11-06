@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <AssemblyName>ImageArchiverWpf</AssemblyName>
+    <RootNamespace>ImageArchiver.Wpf</RootNamespace>
+    <!-- WPF's built-in Fluent theme (ThemeMode) is still flagged experimental in .NET 10. -->
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ImageArchiver.Core\ImageArchiver.Core.csproj" />
+  </ItemGroup>
+
+</Project>

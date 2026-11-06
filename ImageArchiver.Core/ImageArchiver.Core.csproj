@@ -1,0 +1,20 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- UI-free archiving API, used by both the CLI and the WPF app. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>ImageArchiver.Core</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="ImageArchiver.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MetadataExtractor" Version="2.9.3" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.14" />
+  </ItemGroup>
+
+</Project>

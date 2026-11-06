@@ -1,0 +1,75 @@
+﻿<Window x:Class="ImageArchiver.Wpf.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Image Archiver"
+        Width="820" Height="600" MinWidth="560" MinHeight="420"
+        WindowStartupLocation="CenterScreen"
+        Closing="OnClosing">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <Label Grid.Row="0" Content="Source" Target="{Binding ElementName=SourceBox}" VerticalAlignment="Center" Margin="0,0,12,8" />
+        <TextBox x:Name="SourceBox" Grid.Row="0" Grid.Column="1" Margin="0,0,8,8" TextChanged="OnPathChanged" />
+        <Button Grid.Row="0" Grid.Column="2" Content="Browse..." Margin="0,0,0,8" Click="OnBrowseSource" />
+
+        <Label Grid.Row="1" Content="Target" Target="{Binding ElementName=TargetBox}" VerticalAlignment="Center" Margin="0,0,12,8" />
+        <TextBox x:Name="TargetBox" Grid.Row="1" Grid.Column="1" Margin="0,0,8,8" TextChanged="OnPathChanged" />
+        <Button Grid.Row="1" Grid.Column="2" Content="Browse..." Margin="0,0,0,8" Click="OnBrowseTarget" />
+
+        <Label Grid.Row="2" Content="Catalog" Target="{Binding ElementName=CatalogBox}" VerticalAlignment="Center" Margin="0,0,12,8" />
+        <StackPanel Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Orientation="Horizontal" Margin="0,0,0,8">
+            <ComboBox x:Name="CatalogBox" SelectedIndex="0" MinWidth="160" VerticalAlignment="Center">
+                <ComboBoxItem Content="CSV (catalog.csv)" />
+                <ComboBoxItem Content="SQLite (catalog.db)" />
+            </ComboBox>
+            <CheckBox x:Name="SuppressBox" Content="Suppress duplicates" IsChecked="True" Margin="24,0,0,0" VerticalAlignment="Center"
+                      ToolTip="Never store identical content twice, even when the modified dates differ. Without this, the same bytes with another modified date are stored under a new name." />
+        </StackPanel>
+
+        <StackPanel Grid.Row="3" Grid.ColumnSpan="3" Orientation="Horizontal" Margin="0,4,0,12">
+            <Button x:Name="StartButton" Content="Start" MinWidth="96" IsEnabled="False" Style="{StaticResource AccentButtonStyle}" Click="OnStart" />
+            <Button x:Name="CancelButton" Content="Cancel" MinWidth="96" Margin="8,0,0,0" IsEnabled="False" Click="OnCancel" />
+            <Button x:Name="OpenButton" Content="Open target folder" Margin="8,0,0,0" Visibility="Collapsed" Click="OnOpenTarget" />
+            <Button x:Name="DuplicatesButton" Content="Find duplicates" Margin="24,0,0,0" IsEnabled="False" Click="OnFindDuplicates"
+                    ToolTip="A dry run on the source alone: reports what archiving would leave out. Nothing is copied or changed." />
+            <Button x:Name="DatesButton" Content="Update source dates..." Margin="8,0,0,0" IsEnabled="False" Click="OnUpdateDates"
+                    ToolTip="Sets each source file's created and modified dates to its smallest detected date. The previous dates are not kept." />
+        </StackPanel>
+
+        <ProgressBar x:Name="Bar" Grid.Row="4" Grid.ColumnSpan="3" Height="8" Margin="0,0,0,8" />
+
+        <TextBlock x:Name="StatusText" Grid.Row="5" Grid.ColumnSpan="3" Margin="0,0,0,8" TextTrimming="CharacterEllipsis" Text="Choose a source and a target directory." />
+
+        <ListBox x:Name="LogList" Grid.Row="6" Grid.ColumnSpan="3"
+                 FontFamily="Cascadia Mono, Consolas" FontSize="12"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled"
+                 VirtualizingPanel.IsVirtualizing="True"
+                 VirtualizingPanel.VirtualizationMode="Recycling">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem" BasedOn="{StaticResource {x:Type ListBoxItem}}">
+                    <Setter Property="Padding" Value="8,1" />
+                    <Setter Property="Margin" Value="0" />
+                    <Setter Property="MinHeight" Value="0" />
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding}" TextTrimming="CharacterEllipsis" ToolTip="{Binding}" />
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</Window>
